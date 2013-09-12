@@ -11,9 +11,9 @@
     "less-middleware": "*",
     "passport": "0.1.17",
     "passport-facebook": "1.0.0",
-    "pdf.js": "latest",
     "mongoose": "latest",
     "socket.io": "latest",
-    "mkdirp": "latest"
+    "mkdirp": "latest",
+    "underscore": "latest"
   }
 }

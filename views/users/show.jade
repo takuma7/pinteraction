@@ -1,0 +1,29 @@
+extends ../layout
+
+block content
+  .container
+    br
+    .row
+      .col-md-2.col-lg-2
+        img.img-circle(src='#{vser.image}', width='100%')
+      .col-md-10.col-lg-10
+        h2=vser.name
+        .row
+          .col-md-6.col-lg-6
+            h3 Slides
+            - if(vser_slides.length == 0)
+              .alert.alert-warning No slide has been uploaded yet.
+            - else
+              .list-group
+                - for(var slide in vser_slides)
+                  a.list-group-item(href='/slides#{slide._id}')
+                    = slide.title
+          .col-md-6.col-lg-6
+            h3 Sessions
+            - if(vser_sessions.length == 0)
+              .alert.alert-warning No session has been held yet.
+            - else
+              .list-group
+                - for(var session in vser_sessions)
+                  a.list-group-item(href='/sessions#{session._id}')
+                    = session.title

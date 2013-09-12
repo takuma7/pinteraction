@@ -4,13 +4,23 @@ html
     title= title
     link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
     link(rel='stylesheet', href='/stylesheets/default.css')
+    script(type='text/javascript', src='/javascripts/jquery.min.js')
   body
-    #header.navbar.navbar-default.navbar-fixed-top
+    #header.navbar.navbar-default.navbar-fixed-top.navbar-inverse
       .container
         .navbar-header
           a.navbar-brand(href='/')
             img(src='/images/pinteraction-icon-75x75.png', width='20px')
         - if(user)
+          ul.nav.navbar-nav
+            li(class=IS_SLIDES ? "active" : "")
+              a(href='/slides')
+                span.glyphicon.glyphicon-film
+                | &nbsp;&nbsp;Slides
+            li(class=IS_SESSIONS ? "active" : "")
+              a(href='/sessions')
+                span.glyphicon.glyphicon-eye-open
+                | &nbsp;&nbsp;Sessions
           ul.nav.navbar-nav.navbar-right
             li.dropdown
               a.dropdown-toggle('data-toggle'='dropdown', href='#')
@@ -20,13 +30,22 @@ html
                 b.caret
               ul.dropdown-menu
                 li
-                  a(href='/slides')
-                    span.glyphicon.glyphicon-book
-                    | &nbsp;&nbsp;Your Slides
+                  a(href='/slides/new')
+                    span.glyphicon.glyphicon-plus
+                    | &nbsp;&nbsp;upload
+                li.divider
                 li
-                  a(href='/sessions')
+                  a(href='/users/' + user.uid)
+                    span.glyphicon.glyphicon-user
+                    | &nbsp;&nbsp;your profile
+                li
+                  a(href='/users/' + user.uid + '/slides')
+                    span.glyphicon.glyphicon-film
+                    | &nbsp;&nbsp;your slides
+                li
+                  a(href='/users/' + user.uid + '/sessions')
                     span.glyphicon.glyphicon-eye-open
-                    | &nbsp;&nbsp;Sessions
+                    | &nbsp;&nbsp;your sessions
                 li.divider
                 li
                   a(href="/logout")
@@ -37,5 +56,4 @@ html
             i.glyphicon.glyphicon-log-in
             = " login with facebook"
     block content
-    script(type='text/javascript', src='/javascripts/jquery.min.js')
     script(type='text/javascript', src='/javascripts/bootstrap.min.js')

@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+  .container
+    h2 All Users
+    - if(users.length == 0)
+      .alert.alert-warning
+        | No user signed up yet.
+    - else
+      table.table
+        tr
+          th Photo
+          th Name
+          th Joined
+        - each vser in users
+          tr
+            td.text-center
+              img.img-circle(src='#{vser.image}', width='50px')
+            td
+              a(href='/users/#{vser._id}')
+                =vser.name
+            td
+              =vser.created

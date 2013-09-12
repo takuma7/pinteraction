@@ -1,6 +1,23 @@
 extends ../layout
 
 block content
-  form(action='/upload', method='post', enctype='multipart/form-data')
-    input(type='file', name='file')
-    input(type='submit')
+  .container
+    h2 Create New Slide
+    form.form-horizontal(action='/slides/create', method='post', enctype='multipart/form-data')
+      .form-group
+        label.control-label.col-md-3.col-lg-3(for='title') Title
+        .col-md-9.col-lg-9
+          input.form-control#title(name='title')
+      .form-group
+        label.control-label.col-md-3.col-lg-3(for='description') Description
+        .col-md-9.col-lg-9
+          textarea.form-control#description(name='description')
+      .form-group
+        label.control-label.col-md-3.col-lg-3(for='file') Slide File (*.pdf)
+        .col-md-9.col-lg-9
+          input.form-control(type='file', name='file', accept='application/pdf')
+      .form-group
+        .col-md-offset-3.col-lg-offset-3.col-md-9.col-ld-9
+          input.btn.btn-primary(type='submit')
+          &nbsp;
+          a.btn.btn-default(href='/slides') Cancel

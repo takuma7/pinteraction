@@ -12,7 +12,8 @@ module.exports = {
       db_name: "pinteraction-express",
     }
   },
-  baseURL: "http://localhost:3000",
+  EXPRESS_ROOT: "http://localhost:3000",
+  UPLOAD_BASEPATH: __dirname + "/public/uploads/",
   io: {
     client: {
       host: "localhost",
