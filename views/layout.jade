@@ -2,6 +2,40 @@ doctype 5
 html
   head
     title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
+    link(rel='stylesheet', href='/stylesheets/default.css')
   body
+    #header.navbar.navbar-default.navbar-fixed-top
+      .container
+        .navbar-header
+          a.navbar-brand(href='/')
+            img(src='/images/pinteraction-icon-75x75.png', width='20px')
+        - if(user)
+          ul.nav.navbar-nav.navbar-right
+            li.dropdown
+              a.dropdown-toggle('data-toggle'='dropdown', href='#')
+                img.img-circle(src='#{user.image}', height='20px', width='20px')
+                &nbsp;
+                = user.name
+                b.caret
+              ul.dropdown-menu
+                li
+                  a(href='/slides')
+                    span.glyphicon.glyphicon-book
+                    | &nbsp;&nbsp;Your Slides
+                li
+                  a(href='/sessions')
+                    span.glyphicon.glyphicon-eye-open
+                    | &nbsp;&nbsp;Sessions
+                li.divider
+                li
+                  a(href="/logout")
+                    span.glyphicon.glyphicon-log-out
+                    | &nbsp;&nbsp;logout
+        - else
+          a.btn.btn-default.navbar-btn.navbar-right(href='/auth/facebook')
+            i.glyphicon.glyphicon-log-in
+            = " login with facebook"
     block content
+    script(type='text/javascript', src='/javascripts/jquery.min.js')
+    script(type='text/javascript', src='/javascripts/bootstrap.min.js')
