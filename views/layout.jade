@@ -5,6 +5,7 @@ html
     link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
     link(rel='stylesheet', href='/stylesheets/default.css')
     script(type='text/javascript', src='/javascripts/jquery.min.js')
+    script(type='text/javascript', src='/socket.io/socket.io.js')
   body
     #header.navbar.navbar-default.navbar-fixed-top.navbar-inverse
       .container
@@ -51,9 +52,5 @@ html
                   a(href="/logout")
                     span.glyphicon.glyphicon-log-out
                     | &nbsp;&nbsp;logout
-        - else
-          a.btn.btn-default.navbar-btn.navbar-right(href='/auth/facebook')
-            i.glyphicon.glyphicon-log-in
-            = " login with facebook"
     block content
     script(type='text/javascript', src='/javascripts/bootstrap.min.js')

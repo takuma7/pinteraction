@@ -73,7 +73,8 @@ var SessionSchema = new Schema({
   description: String,
   date: Date,
   slide_id: mongoose.Schema.Types.ObjectId, //Since slide's id is ObjectId
-  current_page: Number
+  current_page: Number,
+  created: {type: Date, default: Date.now}
 });
 mongoose.model('Session', SessionSchema);
 
@@ -237,7 +238,7 @@ app.post('/upload', function(req, res){
 //
 
 // GET users#index
-app.get('/users', function(req, res){
+app.get('/users', ensureAuthenticated, function(req, res){
   User.find({}, function(err, users){
     res.render('users/index', {
         user: req.user
@@ -247,7 +248,7 @@ app.get('/users', function(req, res){
 });
 
 // GET users#show
-app.get('/users/:uid(\\w+)', function(req, res){
+app.get('/users/:uid(\\w+)', ensureAuthenticated, function(req, res){
   User.findOne({uid: req.params.uid}, function(err, vser){
     if(vser){
       Slide.find({user_id: vser.uid}, function(err, vser_slides){
@@ -273,7 +274,7 @@ app.get('/users/:uid(\\w+)', function(req, res){
 //
 
 // GET slides#index
-app.get('/slides', function(req, res){
+app.get('/slides', ensureAuthenticated, function(req, res){
   Slide.find({}, function(err, slides){
     // console.log(slides);
     res.render('slides/index', {
@@ -325,7 +326,7 @@ app.post('/slides/create', ensureAuthenticated, function(req, res){
 });
 
 // GET slides#show
-app.get('/slides/:id(\\w+)', function(req, res){
+app.get('/slides/:id(\\w+)', ensureAuthenticated, function(req, res){
   console.log(ObjectId.fromString(req.params.id));
   Slide.findOne({_id: ObjectId.fromString(req.params.id)}, function(err, slide){
     if(slide){
@@ -400,20 +401,163 @@ app.post('/slides/:id(\\w+)/update', ensureAuthenticated, function(req, res){
 //
 
 // GET sessions#index
+app.get('/sessions', ensureAuthenticated, function(req, res){
+  Session.find({}, function(err, sessions){
+    // console.log(slides);
+    res.render('sessions/index', {
+        user: req.user
+      , sessions: sessions
+      , IS_SESSIONS: true
+    });    
+  });
+});
 
 // GET sessions#new
+app.get('/sessions/new', ensureAuthenticated, function(req, res){
+  if(!req.query.slide_id){
+    res.status('404').render('404', {
+        title: 'No slide is specified.'
+      , user: req.user
+      , IS_SESSIONS: true
+    });
+  }
+  Slide.findOne({_id: ObjectId.fromString(req.query.slide_id)}, function(err, slide){
+    if(slide){
+      res.render('sessions/new', {
+          slide: slide
+        , user: req.user
+        , IS_SESSIONS: true
+      });
+    }else{
+      res.status('404').render('404', {
+          title: 'Specified Slide Not Exists.'
+        , user: req.user
+        , IS_SESSIONS: true
+      });
+    }
+  });
+});
 
 // POST sessions#create
+app.post('/sessions/create', ensureAuthenticated, function(req, res){
+  Slide.findOne({_id: ObjectId.fromString(req.body.slide_id)}, function(err, slide){
+    if(slide){
+      var session = new Session()
+      session.slide_id = slide._id;
+      session.user_id = req.user.uid;
+      session.title = req.body.title;
+      session.description = req.body.description;
+      session.current_page = 1;
+      session.save(function(err){
+        res.redirect('/sessions/'+session._id);
+      });
+    }else{
+      res.status('404').render('404', {
+          title: 'Specified Slide Not Exists.'
+        , user: req.user
+        , IS_SESSIONS: true
+      });
+    }
+  });
+});
 
 // GET sessions#show
+app.get('/sessions/:id(\\w+)', ensureAuthenticated, function(req, res){
+  Session.findOne({_id: ObjectId.fromString(req.params.id)}, function(err, session){
+    if(session){
+      Slide.findOne({_id: session.slide_id}, function(err, slide){
+        if(req.user.uid == session.user_id){//if current user is the speaker
+          res.render('sessions/show_speaker', {
+              slide: slide
+            , session: session
+            , user: req.user
+            , conf: conf
+            , IS_SESSIONS: true
+          });
+        }else{
+          User.findOne({uid: session.user_id}, function(err, speaker){
+            res.render('sessions/show_audience', {
+                slide: slide
+              , session: session
+              , speaker: speaker
+              , user: req.user
+              , conf: conf
+              , IS_SESSIONS: true
+            });            
+          });
+        }
+      });
+    }else{
+      res.status('404').render('404', {
+          title: 'Session #' +req.params.id+' Not Exists.'
+        , user: req.user
+        , IS_SESSIONS: true
+      });
+    }
+  });
+});
 
 // GET sessions#edit
+app.get('/sessions/:id(\\w+)/edit', ensureAuthenticated, function(req, res){
+});
 
 // PUT session#update
+app.post('/sessions/:id(\\w+)/update', ensureAuthenticated, function(req, res){
+});
 
 // DELETE sessions#delete
 
 
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
+});
+
+
+session_io = io.sockets.on('connection', function (socket) {
+  socket.emit('connected');
+  socket.on('init', function(req) {
+    socket.set('session_id', req.session_id);
+    socket.set('user_id', req.user_id);
+    socket.set('user_name', req.user_name);
+    session_io.to(req.session_id).emit('message', req.user_name + " (user_id:" + req.user_id + "joined this session");
+    socket.join(req.session_id);
+    Session.findOne({_id: ObjectId.fromString(req.session_id)}, function(err, session){
+      if(session){
+        session_io.to(req.session_id).emit('page changed', {current_page: parseInt(session.current_page)});
+      }
+    });
+  });
+  socket.on('page changed', function(data) {
+    console.log(data);
+    var session_id, user_id, user_name;
+    socket.get('session_id', function(err, _session_id) {
+      session_id = _session_id;
+    });
+    socket.get('user_id', function(err, _user_id) {
+      user_id = _user_id;
+    });
+    socket.get('user_name', function(err, _user_name) {
+      user_name = _user_name;
+    });
+    Session.update({_id: ObjectId.fromString(session_id)}, {current_page: parseInt(data.current_page)}, function(err, session){
+      if(session){
+        session_io.to(session_id).json.emit('page changed', {current_page: parseInt(data.current_page)});
+      }
+    });
+  });
+
+  socket.on('disconnect', function() {
+    var session_id, user_id, user_name;
+    socket.get('session_id', function(err, _session_id) {
+      session_id = _session_id;
+    });
+    socket.get('user_id', function(err, _user_id) {
+      user_id = _user_id;
+    });
+    socket.get('user_name', function(err, _user_name) {
+      user_name = _user_name;
+    });
+    socket.leave(session_id);
+    session_io.to(session_id).emit('message', user_name + " left this session");
+  });
 });

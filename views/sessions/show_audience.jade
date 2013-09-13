@@ -1,0 +1,129 @@
+extends ../layout
+
+block content
+  script(type='text/javascript', src='/javascripts/pdf.js')
+  script(type='text/javascript', src='/javascripts/processing-1.4.1.min.js')
+  .container
+    h2=session.title
+  .theatre
+    .container
+      .row
+        .col-md-6.col-lg-6
+          .slide-wrapper
+            canvas#slide_canvas
+            .progress#slide_progress_autoplay
+              .progress-bar(style='width: 0%;')
+            .progress#slide_progress
+              .progress-bar.progress-bar-danger(style='width: 0%;')
+          .form-group
+            button.btn.btn-default#auto(onclick='goAuto()')
+              span.glyphicon.glyphicon-play-circle.text-mute
+            &nbsp;
+            button.btn.btn-default#prev(onclick='goPrevious()')
+              span.glyphicon.glyphicon-chevron-left
+            button.btn.btn-default#next(onclick='goNext()')
+              span.glyphicon.glyphicon-chevron-right
+        .col-md-6.col-lg-6
+          form.form-horizontal
+            .form-group
+              label.control-label.col-md-3.col-lg-3(for='description') Description
+              .col-md-9.col-lg-9
+                p.form-control-static=slide.description
+            .form-group
+              label.control-label.col-md-3.col-lg-3(for='speaker') Speaker
+              .col-md-9.col-lg-9
+                a(href='/users/#{speaker.uid}')=speaker.name
+            .form-group
+              label.control-label.col-md-3.col-lg-3(for='created') Created At
+              .col-md-9.col-lg-9
+                p.form-control-static=slide.created
+          hr
+          .col-md-3.col-lg-3
+            &nbsp; &nbsp;
+            | Page:
+            span#page_num
+            | /
+            span#page_count
+          .col-md-6.col-lg-6
+            ul#url_list.list-unstyled
+  - if(user)
+    script
+      var pageNum = 1;
+      var socket = io.connect('http://#{conf.io.client.host}:#{conf.io.client.port}');
+      socket.on('connected', function(){
+        socket.json.emit('init', { 'session_id': '#{session._id}', 'user_id': '#{user.uid}' });
+      });
+      socket.on('page changed', function(data){
+        pageNum = data.current_page;
+        renderPage(pageNum, true);
+        console.log(data);
+      });
+      socket.on('message', function(data){
+        console.log(data);
+      });
+      var url = "/uploads/#{slide.file_url}";
+      PDFJS.disableWorker = true;
+      var pdfDoc = null,
+          scale = 1.0,
+          canvas = document.getElementById('slide_canvas'),
+          ctx = canvas.getContext('2d');
+      function renderPage(num, isAutoplay) {
+        // Using promise to fetch the page
+        SLIDE_STRING = ''; //reset string
+        pdfDoc.getPage(num).then(function(page) {
+          var viewport = page.getViewport($('#slide_canvas').parent().width()/page.getViewport(1.0).width);
+          // debugger;
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          // Render PDF page into canvas context
+          var renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
+          };
+          page.render(renderContext).then(function(){
+            $('#slide_progress').attr('style', 'width:' +  $('#slide_canvas').width() + 'px;');
+        
+            console.log('retrieved text : ' + SLIDE_STRING);
+            var re = /[h3p|h1p]s?:\/\/[-_.!~*¥'()a-zA-Z0-9;¥/?:¥@&=+¥$,%#]+?\//g;
+            var urls = SLIDE_STRING.match(re);
+            $('#url_list').html('');
+            if(urls != null){
+              urls = urls.map(function(url){
+                return url.replace(/[h3p|h1p]/, 'http');
+              });
+              urls.map(function(url){
+                $('#url_list').append('<li><a href="' + url + '" target="_blank">' + '<span class="glyphicon glyphicon-share"></span> '+ url + '</li>');
+              });
+            }
+            console.log(urls);
+          });
+        });
+        // Update page counters
+        document.getElementById('page_num').textContent = pageNum;
+        document.getElementById('page_count').textContent = pdfDoc.numPages;
+        if(isAutoplay){
+          $('#slide_progress_autoplay > .progress-bar').css({'width': (pageNum / pdfDoc.numPages * 100).toString() + '%'});
+          $('#slide_progress > .progress-bar').css({'width': (pageNum / pdfDoc.numPages * 100).toString() + '%'});        
+        }else{
+          $('#slide_progress > .progress-bar').css({'width': (pageNum / pdfDoc.numPages * 100).toString() + '%'});        
+        }
+      }
+      function goPrevious() {
+        if (pageNum <= 1)
+          return;
+        pageNum--;
+        renderPage(pageNum);
+      }
+      function goNext() {
+        if (pageNum >= pdfDoc.numPages)
+          return;
+        pageNum++;
+        renderPage(pageNum);
+      }
+      PDFJS.getDocument(url).then(function getPdfHelloWorld(_pdfDoc) {
+        pdfDoc = _pdfDoc;
+        renderPage(pageNum);
+      });
+      //
+      //
+    

@@ -15,8 +15,8 @@ block content
               .alert.alert-warning No slide has been uploaded yet.
             - else
               .list-group
-                - for(var slide in vser_slides)
-                  a.list-group-item(href='/slides#{slide._id}')
+                - each slide in vser_slides
+                  a.list-group-item(href='/slides/#{slide._id}')
                     = slide.title
           .col-md-6.col-lg-6
             h3 Sessions
@@ -24,6 +24,6 @@ block content
               .alert.alert-warning No session has been held yet.
             - else
               .list-group
-                - for(var session in vser_sessions)
-                  a.list-group-item(href='/sessions#{session._id}')
+                - each session in vser_sessions
+                  a.list-group-item(href='/sessions/#{session._id}')
                     = session.title

@@ -1,0 +1,20 @@
+extends ../layout
+
+block content
+  .container
+    h2 All Sessions
+    - if(sessions.length == 0)
+      .alert.alert-warning
+        | No session is created yet.
+    - else
+      table.table
+        tr
+          th Title
+          th Created
+        - each session in sessions
+          tr
+            td
+              a(href='/sessions/#{session._id}')
+                =session.title
+            td
+              = session.created

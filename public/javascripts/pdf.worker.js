@@ -2585,6 +2585,7 @@ var Annotation = (function AnnotationClosure() {
 
     // TODO(mack): Implement FreeText annotations
     if (subtype === 'Link') {
+      // debugger;
       return LinkAnnotation;
     } else if (subtype === 'Text') {
       return TextAnnotation;
@@ -2995,6 +2996,7 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
       var linkType = action.get('S').name;
       if (linkType === 'URI') {
         var url = action.get('URI');
+        // debugger;
         // TODO: pdf spec mentions urls can be relative to a Base
         // entry in the dictionary.
         if (!isValidUrl(url, false)) {
@@ -14684,6 +14686,7 @@ var PartialEvaluator = (function PartialEvaluatorClosure() {
             for (var i = 0; i < arrLength; ++i) {
               if (isString(arr[i])) {
                 arr[i] = this.handleText(arr[i]);
+                // debugger;
               }
             }
           } else if (cmd === '\'') { // nextLineShowText

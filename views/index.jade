@@ -2,6 +2,18 @@ extends layout
 
 block content
   .container
-    h1= title
-    p Welcome to #{title}
-    a.btn.btn-lg.btn-primary(href='/slides/new') Create New Slide
+    h2 Pinteraction
+    .row
+      .col-md-5.col-lg-5
+        h3 スライドをアップロード
+        p
+          | 右上のメニューからuploadを選択し、必要項目を入力してスライドを作成します。
+      .col-md-7.col-lg-7
+    .row
+      .col-md-7.col-lg-7
+      .col-md-5.col-lg-5
+        h3 セッションを開く
+        p
+          | 作成したスライドから「セッションを開催」としてセッションを開きます。
+          br
+          | セッションは一覧からアクセスすることができ、セッションの聴衆は聴衆モード、スピーカはスピーカモードで表示されます。

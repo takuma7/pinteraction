@@ -23,6 +23,8 @@ if (typeof PDFJS === 'undefined') {
 PDFJS.version = '0.8.510';
 PDFJS.build = '4f243b3';
 
+var SLIDE_STRING = '';
+
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
   'use strict';
@@ -3743,6 +3745,7 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
     var action = dict.get('A');
     if (action) {
       var linkType = action.get('S').name;
+      debugger;
       if (linkType === 'URI') {
         var url = action.get('URI');
         // TODO: pdf spec mentions urls can be relative to a Base
@@ -3751,6 +3754,7 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
           url = '';
         }
         data.url = url;
+        // debugger;
       } else if (linkType === 'GoTo') {
         data.dest = action.get('D');
       } else if (linkType === 'GoToR') {
@@ -3809,6 +3813,7 @@ var LinkAnnotation = (function LinkAnnotationClosure() {
       element.style.height = height + 'px';
 
       element.href = this.data.url || '';
+      // debugger;
       return element;
     }
   });
@@ -6138,6 +6143,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
 
       for (var i = 0; i < arrLength; ++i) {
         var e = arr[i];
+        // debugger
         if (isNum(e)) {
           var spacingLength = -e * fontSize * textHScale;
           if (vertical) {
@@ -6145,12 +6151,18 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
           } else {
             current.x += spacingLength;
           }
-
           if (textSelection)
             spacingAccumulator += spacingLength;
         } else {
           var shownCanvasWidth = this.showText(e, true);
-
+          // debugger;
+          // var s = '';
+          for(var j=0; j<e.length; j++){
+            SLIDE_STRING += e[j].unicode;
+            // console.log("\t" + SLIDE_STRING);
+          }
+          // console.log(s);
+          
           if (textSelection) {
             canvasWidth += spacingAccumulator + shownCanvasWidth;
             spacingAccumulator = 0;
@@ -6169,6 +6181,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
     },
     nextLineShowText: function CanvasGraphics_nextLineShowText(text) {
       this.nextLine();
+      // debugger;
       this.showText(text);
     },
     nextLineSetSpacingShowText:

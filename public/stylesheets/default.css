@@ -1,3 +1,15 @@
 body {
   padding-top: 50px;
+  background: #222;
+  color: #fff;
+}
+body a {
+  color: #E82E79;
+}
+body a:hover,
+body a:focus {
+  color: #cc1760;
+}
+.theatre {
+  padding: 50px 0;
 }
