@@ -9,10 +9,12 @@ block content
     - else
       table.table
         tr
+          th Status
           th Title
           th Created
         - each session in sessions
           tr
+            td
             td
               a(href='/sessions/#{session._id}')
                 =session.title

@@ -2,13 +2,12 @@ extends ../layout
 
 block content
   script(type='text/javascript', src='/javascripts/pdf.js')
-  .container
-    h2=session.title
   .theatre
     .container
       .row
         .slide-wrapper
-          canvas#slide_canvas
+          #slide_view
+            canvas#slide_canvas
           .progress#slide_progress
             .progress-bar.progress-bar-danger(style='width: 0%;')
         .form-group
@@ -16,18 +15,21 @@ block content
             span.glyphicon.glyphicon-chevron-left
           button.btn.btn-default#next(onclick='goNext()')
             span.glyphicon.glyphicon-chevron-right
-          hr
-          .col-md-3.col-lg-3
-            &nbsp; &nbsp;
-            | Page:
+          .pull-right.page-progress
             span#page_num
-            | /
+            | &nbsp;/&nbsp;
             span#page_count
-          .col-md-6.col-lg-6
-            ul#url_list.list-unstyled
+        hr
+        .col-md-3.col-lg-3
+        .col-md-6.col-lg-6
+          ul#url_list.list-unstyled
       .row
         #slide_detail
           form.form-horizontal
+            .form-group
+              label.control-label.col-md-3.col-lg-3(for='title') Title
+              .col-md-9.col-lg-9
+                p.form-control-static=slide.title
             .form-group
               label.control-label.col-md-3.col-lg-3(for='description') Description
               .col-md-9.col-lg-9
@@ -45,12 +47,132 @@ block content
       socket.on('message', function(data){
         console.log(data);
       });
+      socket.on('new comment', function(data){
+        var commentElm = $('<span class="comment" style="display:inline-block;"/>').appendTo('#slide_view');
+        commentElm.css('position', 'absolute');
+        commentElm.css('top', data.y * $('#slide_view').height());
+        commentElm.css('left', $('#slide_view').width());
+        commentElm.css('z-index', 1000000);
+        commentElm.html(data.body);
+        commentElm.css('font-size', $('#slide_view').height()/16);
+        commentElm.width(parseInt(commentElm.css('font-size').slice(0, -2))*commentElm.text().length);
+        // debugger;
+        commentElm.animate({'left': -commentElm.width()}, 5000, 'linear');
+        console.log(data);
+      });
+      function postComment(){
+        socket.json.emit('post comment', {
+            body: $('#comment_body').val()
+          , user_id: '#{user.uid}'
+          , user_name: '#{user.name}'
+          , y: 0.1 + Math.random()*0.8
+        });
+        $('#comment_body').val('');
+      }
+      $('#comment_btn').click(function(){
+        postComment();
+      });
+      $('#comment_body').keypress(function(ev){
+        if ((ev.which && ev.which === 13) || (ev.keyCode && ev.keyCode === 13)) {
+          postComment();
+        }
+      });
+      $(document).keydown(function(ev){
+        // console.log(ev);
+        if ((ev.which && ev.which === 37) || (ev.keyCode && ev.keyCode === 37)) { //when left arrow key is pressed
+          goPrevious();
+        }else if ((ev.which && ev.which === 39) || (ev.keyCode && ev.keyCode === 39)) { //when right arrow key is pressed
+          goNext();
+        }
+      });
+      
+      $('#slide_view').css('position', 'relative');
+      $('#slide_view').css('overflow', 'hidden');
+      
       var url = "/uploads/#{slide.file_url}";
       PDFJS.disableWorker = true;
+      // var pdfDoc = null,
+      //     pageNum = 1,
+      //     scale = 1.0;
+      // function renderPDF(){
+      //   var slideView = $('#slide_view');
+      //   var viewport;
+      //   pdfDoc.getPage(1).then(function(page1){
+      //     viewport = page1.getViewport(slideView.parent().width()/page1.getViewport(1.0).width);
+      //     slideView.width(viewport.width);
+      //     slideView.height(viewport.height);
+      //     slideView.css('position', 'relative');
+      //     slideView.css('overflow', 'hidden');
+      //     var slideSlider = $('<div />').appendTo(slideView);
+      //     slideSlider.attr('id', 'slide_slider');
+      //     slideSlider.width(viewport.width * pdfDoc.numPages);
+      //     slideSlider.height(viewport.height);
+      //     slideSlider.css('position', 'absolute');
+      //     slideSlider.css('top', 0);
+      //     slideSlider.css('left', (pageNum-1)*viewport.width + 'px');
+      //     for(var i=0; i<pdfDoc.numPages; i++){
+      //       var canvasWrapper = $('<div />').appendTo(slideSlider);
+      //       canvasWrapper.addClass('canvasWrapper');
+      //       canvasWrapper.attr('id', 'wrapper' + i);
+      //       canvasWrapper.css('position', 'absolute');
+      //       canvasWrapper.css('top', 0);
+      //       canvasWrapper.css('left', (pageNum-1)*viewport.width + 'px');
+      //       var canvas = $('<canvas />').appendTo(canvasWrapper);
+      //       canvas.attr('id', 'page' + i);
+      //       canvas = document.getElementById('page' + i);
+      //       ctx = canvas.getContext('2d');
+      //       canvas.height = viewport.height;
+      //       canvas.width = viewport.width;
+      //       pdfDoc.getPage(i).then(function(page){
+      //         page.render({
+      //           canvasContext: ctx,
+      //           viewport: viewport
+      //         }).then(function(){
+      //           $('#slide_progress').attr('style', 'width:' +  $('#slide_canvas').width() + 'px;');
+      //           console.log('retrieved text : ' + SLIDE_STRING);
+      //           var re = /[h3p|h1p]s?:\/\/[-_.!~*¥'()a-zA-Z0-9;¥/?:¥@&=+¥$,%#]+?\//g;
+      //           var urls = SLIDE_STRING.match(re);
+      //           $('#url_list').html('');
+      //           if(urls != null){
+      //             urls = urls.map(function(url){
+      //               return url.replace(/[h3p|h1p]/, 'http');
+      //             });
+      //             urls.map(function(url){
+      //               $('#url_list').append('<li><a href="' + url + '" target="_blank">' + '<span class="glyphicon glyphicon-share"></span> '+ url + '</li>');
+      //             });
+      //           }
+      //           console.log(urls);
+      //         });
+      //       });
+      //     }
+      //   });
+      // }
+      // PDFJS.getDocument(url).then(function getPdfHelloWorld(_pdfDoc) {
+      //   pdfDoc = _pdfDoc;
+      //   renderPDF();
+      // });
+      // function goPrevious() {
+      //   if (pageNum <= 1)
+      //     return;
+      //   pageNum--;
+      //   $('#slide_slider').transition({
+      //     x: -$('.canvasWrapper').width()
+      //   });        
+      // }
+      // function goNext() {
+      //   if (pageNum >= pdfDoc.numPages)
+      //     return;
+      //   pageNum++;
+      //   $('#slide_slider').transition({
+      //     x: $('.canvasWrapper').width()
+      //   });
+      // }
+      
       var pdfDoc = null,
           pageNum = 1,
           scale = 1.0,
           canvas = document.getElementById('slide_canvas'),
+          slideView = document.getElementById('slide_view'),
           ctx = canvas.getContext('2d');
       function renderPage(num) {
         // Using promise to fetch the page
@@ -58,8 +180,8 @@ block content
         pdfDoc.getPage(num).then(function(page) {
           var viewport = page.getViewport($('#slide_canvas').parent().width()/page.getViewport(1.0).width);
           // debugger;
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
+          slideView.height = canvas.height = viewport.height;
+          slideView.width = canvas.width = viewport.width;
           // Render PDF page into canvas context
           var renderContext = {
             canvasContext: ctx,
@@ -106,6 +228,6 @@ block content
         pdfDoc = _pdfDoc;
         renderPage(pageNum);
       });
-      //
+      
       //
       var socket = io.connect('http://#{conf.io.client.host}:#{conf.io.client.port}');

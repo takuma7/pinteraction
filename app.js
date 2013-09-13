@@ -545,6 +545,19 @@ session_io = io.sockets.on('connection', function (socket) {
       }
     });
   });
+  
+  socket.on('post comment', function(data) {
+    console.log(data);
+    var session_id;
+    socket.get('session_id', function(err, _session_id) {
+      session_id = _session_id;
+    });
+    if(data.body.trim() != ''){
+      session_io.to(session_id).json.emit('new comment', data);
+    }else{
+      console.log('posted comment was empty');
+    }
+  });
 
   socket.on('disconnect', function() {
     var session_id, user_id, user_name;
